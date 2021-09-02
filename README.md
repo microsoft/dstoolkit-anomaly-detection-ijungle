@@ -6,7 +6,7 @@
 
 
 
-![design folder](https://github.com/microsoft/dstoolkit-classification-solution-accelerator/blob/main/docs/media/Banner_Classification_SA.png)
+![design folder](https://github.com/microsoft/dstoolkit-anomaly-detection-ijungle/blob/main/docs/media/banner.png)
 
 About this repository
 ============================================================================================================================================
