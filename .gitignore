@@ -1,7 +1,7 @@
 ## Specific temporary files
 .ipynb_checkpoints
 .venv
-data
+#data
 build
 dist
 *.egg-info
