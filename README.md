@@ -52,6 +52,17 @@ This is going to create iJungle whl file under `dist` folder and install it usin
 
 Once installed, open `iJungle-tutorial.ipynb` and follow the notebook.
 
+Contents
+================================================================================================================================
+
+| File/Folder   | Description                                                                                     |
+|---------------|-------------------------------------------------------------------------------------------------|
+| `notebooks`   | iJungle quick-start notebook(`iJungle-tutorial.ipynb`), including single & parallel processing  |
+| `src/iJungle` | iJungle source codes                                                                            |
+| `operation`   | iJungle source codes used for parallel processing                                               |
+| `data`        | Sample datasets used in `notebooks`                                                             |
+
+
 General Coding Guidelines
 ====================================================================================================================================================
 
