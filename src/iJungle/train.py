@@ -48,8 +48,7 @@ def model_train_fun(df, trees=100, subsample_size=8192, train_size = 0.2, max_ss
         rng = np.random.RandomState(42)
 
         iFor_list = []
-        i = 0
-        counter = 0
+        i, counter = 0, 0
 
         while i < df_len:
             sub_sample = df.iloc[my_indexes[i:i+subsample_size]]
@@ -136,6 +135,7 @@ def grid_eval(df, subsample_list = [4096, 2048, 1024, 512],
         W = df.iloc[my_indexes[:df_len]]
         
         results_dic = {}
+        ## Evaluation with stored models as external files(pickle format)
         for i, subsample_size in enumerate(subsample_list):
             results_dic_t = {}
             for j, trees in enumerate(trees_list):
@@ -184,15 +184,17 @@ def best_iforest_params(results, verbose=True):
     if verbose:
         print("Shape of av",av.shape)
         print('Number of anomalies with score = -1: {}'.format(len(av[av == -1])))
+    ## Select the best model under L2 metric with grid-search
     best_l2 = np.inf
     for i in range(results.shape[0]):
         for j in range(results.shape[1]):
             for k in range(results.iloc[0,0].shape[1]):
                 if LA.norm(results.iloc[i, j][:, k]-av) <= best_l2:
+                    ## Memorize threshold
                     best_l2 = LA.norm(results.iloc[i, j][:, k]-av)
-                    best_iF_i = i
-                    best_iF_j = j
-                    best_iF_k = k
+                    ## Memorize position corresponding to best params
+                    best_iF_i, best_iF_j, best_iF_k = i, j, k
+
     if verbose:
         print("Best subsample:", results.columns[best_iF_j])
         print("Best number of trees:", results.index[best_iF_i])
@@ -203,7 +205,7 @@ def best_iforest_params(results, verbose=True):
     return(subsample_size, trees, best_iF_k)
 
 def best_iforest(results, verbose=True):
-
+    ## Select the best parameter of generated models
     subsample_size, trees, best_iF_k = best_iforest_params(results, verbose)
 
     picklename = os.path.join(_MODEL_DIR,'iJungle_light_' + str(trees) + '_' + str(subsample_size) + '.pkl')
@@ -222,8 +224,11 @@ def best_iforest(results, verbose=True):
 def train_bundle(df, subsample_list = [4096, 2048, 1024, 512],
                trees_list = [500, 100, 20, 10], train_size=0.2, overhead_size=0.2,
                verbose=True):
+    ## Generate & save models as external files(pickle format) in accordance with subsample_list, trees_list, train_size
     grid_train(df, subsample_list, trees_list, train_size, verbose)
+    ## Evaluation with trained models as external files
     results = grid_eval(df, subsample_list, trees_list, overhead_size, verbose)
+    ## Select the best model
     model = best_iforest(results, verbose)
     return(model)
 
