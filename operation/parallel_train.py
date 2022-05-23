@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser()
 
 # Input Data
 parser.add_argument("--input-data", type=str, dest='input_data', help='training dataset')
+parser.add_argument("--id-feature", type=str, dest='id_feature', help='ID Freature')
 parser.add_argument("--max-subsample-size", type=int, dest='max_sss', help='Max subsample size')
 parser.add_argument("--train-size", type=float, dest='train_size', help='Train size')
 
@@ -21,6 +22,8 @@ parser.add_argument('--subsample-size', type=int, dest='subsample_size', default
 
 # Add arguments to args collection
 args = parser.parse_args()
+id_feat = str(args.id_feature)
+print('id feature',  id_feat)
 
 # Log Hyperparameter values
 trees = np.int(args.trees)
@@ -41,7 +44,7 @@ run.log('train_size',  train_size)
 # Load training data
 print("Loading Data...")
 df = run.input_datasets['training_data'].to_pandas_dataframe() # Get the training data from the estimator input
-
+df.set_index(id_feat, inplace=True)
 
 print("Starting training ...")
 model_filename = iJungle.model_train_fun(df, trees, subsample_size, train_size, max_sss)

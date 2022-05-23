@@ -3,7 +3,7 @@ from iJungle.config import _MODEL_DIR
 
 import random
 from sklearn.ensemble import IsolationForest
-import pickle
+import joblib
 import os
 import numpy as np
 import pandas as pd
@@ -67,9 +67,8 @@ def model_train_fun(df, trees=100, subsample_size=8192, train_size = 0.2, max_ss
                 print("{}/{}".format(counter, int(df_len/max_sss+1)))
             
         filename = 'iJungle_light_' + str(trees) + '_' + str(subsample_size) + '.pkl'
-        with open(os.path.join(_MODEL_DIR, filename), 'wb') as outfile:
-            pickle.dump(iFor_list, outfile)
-
+        joblib.dump(value=iFor_list, filename=os.path.join(_MODEL_DIR, filename))
+ 
         return(filename)
     except Exception as err:
         # TODO: Implement logger
@@ -135,7 +134,7 @@ def grid_eval(df, subsample_list = [4096, 2048, 1024, 512],
         W = df.iloc[my_indexes[:df_len]]
         
         results_dic = {}
-        ## Evaluation with stored models as external files(pickle format)
+        ## Evaluation with stored models as external files(joblib format)
         for i, subsample_size in enumerate(subsample_list):
             results_dic_t = {}
             for j, trees in enumerate(trees_list):
@@ -143,16 +142,14 @@ def grid_eval(df, subsample_list = [4096, 2048, 1024, 512],
                 # TODO: Implement logger
                 if verbose:
                     print('Reading ' + filename)
-                with open(os.path.join(_MODEL_DIR, filename), 'rb') as infile:
-                    iFor_list = pickle.load(infile)
+                iFor_list = joblib.load(os.path.join(_MODEL_DIR, filename))
                 results_dic_t[str(trees)] = model_eval_fun(W, iFor_list, verbose)
             results_dic[str(subsample_size)] = results_dic_t
         
         filename_results = 'iJungle_light_results_overhead.pkl'
         
         results = pd.DataFrame(results_dic)
-        with open(os.path.join(_MODEL_DIR, filename_results), 'wb') as outfile:
-            pickle.dump(results, outfile)
+        joblib.dump(value=results, filename=os.path.join(_MODEL_DIR, filename_results))
         return(results)
     except Exception as err:
         # TODO: Implement logger
@@ -165,8 +162,7 @@ def get_grid_eval_results(verbose = True):
     if os.path.exists(picklename):
         if verbose:
             print("Reading ", picklename)
-        with open(picklename, 'rb') as pickle_in:
-            results = pickle.load(pickle_in)
+        results = joblib.load(picklename)
         return(results)
     else:
         raise Exception("grid_eval has not have been executed")
@@ -211,9 +207,7 @@ def best_iforest(results, verbose=True):
     picklename = os.path.join(_MODEL_DIR,'iJungle_light_' + str(trees) + '_' + str(subsample_size) + '.pkl')
     if verbose:
         print('Reading ' + picklename)
-        
-    with open(picklename,"rb") as pickle_in:  
-        iFor_list = pickle.load(pickle_in)
+    iFor_list = joblib.load(picklename)    
 
     model = iFor_list[best_iF_k]
     if verbose:
