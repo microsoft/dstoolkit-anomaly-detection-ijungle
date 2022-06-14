@@ -1,2 +1,2 @@
-__version__ = '0.1.73'
+__version__ = '0.2.0'
 _MODEL_DIR = 'outputs'
