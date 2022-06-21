@@ -1,0 +1,289 @@
+{
+	"name": "02 - ijungle - training - iforest training",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "d52c46c4-6394-436d-ac00-29fa77db5c5d"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"import pyspark.sql.functions as F\r\n",
+					"from pyspark.sql.window import Window\r\n",
+					"from pyspark.ml.functions import vector_to_array\r\n",
+					"import numpy as np\r\n",
+					"import pandas as pd"
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"tags": [
+						"parameters"
+					]
+				},
+				"source": [
+					"prepped_data_path = 'abfss://pridevsynapseworkingfs@eiadapstoreworking.dfs.core.windows.net/ijungle/02-Prepped_Data'\r\n",
+					"iFor_data_prefix = 'abfss://pridevsynapseworkingfs@eiadapstoreworking.dfs.core.windows.net/ijungle/03-iFor'\r\n",
+					"subsample_list = \"[4096, 2048, 1024, 512]\"\r\n",
+					"trees_list = \"[500, 100, 20, 10]\"\r\n",
+					"train_size = \"0.01\"\r\n",
+					"id_feat = \"['issuer_id','issued_date']\"\r\n",
+					"seed = \"42\""
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Cast parameters\r\n",
+					"subsample_list = eval(subsample_list)\r\n",
+					"trees_list = eval(trees_list)\r\n",
+					"train_size = float(train_size)\r\n",
+					"id_feat = eval(id_feat)\r\n",
+					"seed = int(seed)"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"max_subsample_size = max(subsample_list)\r\n",
+					"w = Window().orderBy(F.lit('A'))"
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"df = spark.read.parquet(prepped_data_path)\r\n",
+					"m = df.count()\r\n",
+					"print(\"Number of records: {:,}\".format(m))"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"num_groups = int(np.ceil(m*train_size/max_subsample_size))"
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"# Add id to join with group table\r\n",
+					"df_id = df.withColumn('_id',F.row_number().over(w))"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"def ijungle_train(id_feat, seed, subsample_size, trees):\r\n",
+					"    def _fun(key, pdf):\r\n",
+					"        from sklearn.ensemble import IsolationForest\r\n",
+					"        import joblib\r\n",
+					"\r\n",
+					"        group = key[0]\r\n",
+					"        pdf.set_index(id_feat, inplace=True)\r\n",
+					"        feats = list(pdf.columns)\r\n",
+					"        feats.remove('_group')\r\n",
+					"        pdf = pdf[feats]\r\n",
+					"\r\n",
+					"        clf = IsolationForest(\r\n",
+					"            n_estimators = trees, \r\n",
+					"            max_samples=min(subsample_size, pdf.shape[0]), \r\n",
+					"            random_state=seed, n_jobs=-1)\r\n",
+					"        clf.fit(pdf)\r\n",
+					"\r\n",
+					"        model_filename = 'iJungle_' + str(group) + '_' + str(trees) + '_' + str(subsample_size) + '.pkl'\r\n",
+					"        joblib.dump(clf, model_filename)\r\n",
+					"\r\n",
+					"        with open(model_filename, 'rb') as model_file:\r\n",
+					"            model_bytes = model_file.read()\r\n",
+					"\r\n",
+					"        return(pd.DataFrame([(group, model_bytes)]))\r\n",
+					"    return(_fun)"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"\r\n",
+					"for trees in trees_list:\r\n",
+					"    for subsample_size in subsample_list:\r\n",
+					"\r\n",
+					"        print(\"Training iJungle models for {} number of trees and {} subsample size ...\".format(trees, subsample_size))\r\n",
+					"\r\n",
+					"        # Random selection of records in groups of subsample size\r\n",
+					"        group_array = np.array([])\r\n",
+					"        for group in range(num_groups):\r\n",
+					"            group_array = np.concatenate([group_array, group * np.ones(subsample_size)])\r\n",
+					"\r\n",
+					"        group_array = np.concatenate([group_array, -1*np.ones(m-(num_groups*subsample_size))])\r\n",
+					"\r\n",
+					"        np.random.shuffle(group_array)\r\n",
+					"\r\n",
+					"        pdf_id_group = pd.DataFrame(group_array, columns=['_group']).reset_index()\r\n",
+					"        pdf_id_group.columns = ['_id', '_group']\r\n",
+					"\r\n",
+					"        df_id_group = spark.createDataFrame(pdf_id_group)\r\n",
+					"\r\n",
+					"        # Join of random selection of groups with training data\r\n",
+					"        df_subsamples = df_id.join(df_id_group, on='_id').where(F.col('_group')>=0).select(id_feat+['scaled','_group'])\r\n",
+					"        df_subsamples = df_subsamples.cache()\r\n",
+					"\r\n",
+					"        # Vector to individual columns to prepare for parallel training\r\n",
+					"        num_feats = len(df_subsamples.head(1)[0]['scaled'])\r\n",
+					"        df_unassembled = df_subsamples.withColumn('f', vector_to_array(\"scaled\")).select(id_feat + ['_group'] + [F.col(\"f\")[i] for i in range(num_feats)])\r\n",
+					"\r\n",
+					"        # Parallel training using applyInPandas function\r\n",
+					"        df_iFor = df_unassembled.groupBy('_group').applyInPandas(\r\n",
+					"            ijungle_train(id_feat, seed, subsample_size, trees), \r\n",
+					"            schema=\"id long, model binary\"\r\n",
+					"        )\r\n",
+					"\r\n",
+					"        # Save DataFrame with trained models\r\n",
+					"        iFor_data_path = iFor_data_prefix + '_' + str(trees) + '_' + str(subsample_size)\r\n",
+					"        df_iFor.write.mode('overwrite').parquet(iFor_data_path)"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					""
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
