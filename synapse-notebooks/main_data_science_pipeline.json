@@ -1,0 +1,962 @@
+{
+  "name": "e_IAD_main_data_science_pipe",
+  "properties": {
+    "activities": [
+      {
+        "dependsOn": [],
+        "name": "4_1_e_IAD_nb_create_edges",
+        "policy": {
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false,
+          "timeout": "0.12:00:00"
+        },
+        "type": "SynapseNotebook",
+        "typeProperties": {
+          "notebook": {
+            "referenceName": "4_1_e_IAD_nb_create_edges",
+            "type": "NotebookReference"
+          },
+          "parameters": {
+            "batch_id": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.batch_id"
+              }
+            },
+            "edge_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.edge_path"
+              }
+            },
+            "heatmap_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.heatmap_path"
+              }
+            },
+            "invoice_cleaned_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.invoice_cleaned_path"
+              }
+            },
+            "model_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.model_path"
+              }
+            }
+          }
+        },
+        "userProperties": []
+      },
+      {
+        "dependsOn": [
+          {
+            "activity": "4_1_e_IAD_nb_create_edges",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "name": "4_2_e_IAD_nb_network_analysis",
+        "policy": {
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false,
+          "timeout": "0.12:00:00"
+        },
+        "type": "SynapseNotebook",
+        "typeProperties": {
+          "notebook": {
+            "referenceName": "4_2_e_IAD_nb_network_analysis",
+            "type": "NotebookReference"
+          },
+          "parameters": {
+            "batch_id": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.batch_id"
+              }
+            },
+            "edge_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.edge_path"
+              }
+            },
+            "page_rank_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.page_rank_path"
+              }
+            }
+          }
+        },
+        "userProperties": []
+      },
+      {
+        "dependsOn": [
+          {
+            "activity": "4_2_e_IAD_nb_network_analysis",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "name": "4_3_e_IAD_nb_create_features",
+        "policy": {
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false,
+          "timeout": "0.12:00:00"
+        },
+        "type": "SynapseNotebook",
+        "typeProperties": {
+          "notebook": {
+            "referenceName": "4_3_e_IAD_nb_create_features",
+            "type": "NotebookReference"
+          },
+          "parameters": {
+            "batch_id": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.batch_id"
+              }
+            },
+            "edge_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.edge_path"
+              }
+            },
+            "invoice_cleaned_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.invoice_cleaned_path"
+              }
+            },
+            "model_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.model_path"
+              }
+            },
+            "page_rank_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.page_rank_path"
+              }
+            },
+            "taxpayer_profile_cleaned_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.taxpayer_profile_cleaned_path"
+              }
+            },
+            "time_slice_list": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.time_slice_list"
+              }
+            },
+            "transformed_data_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.transformed_data_path"
+              }
+            }
+          }
+        },
+        "userProperties": []
+      },
+      {
+        "dependsOn": [
+          {
+            "activity": "AnomalyDetection",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "name": "10_update_batch_status",
+        "policy": {
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false,
+          "timeout": "0.12:00:00"
+        },
+        "type": "SynapseNotebook",
+        "typeProperties": {
+          "notebook": {
+            "referenceName": "10_update_batch_status",
+            "type": "NotebookReference"
+          },
+          "parameters": {
+            "batch_id": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.batch_id"
+              }
+            },
+            "output_container_path": {
+              "type": "string",
+              "value": {
+                "type": "Expression",
+                "value": "@pipeline().parameters.output_container_path"
+              }
+            }
+          }
+        },
+        "userProperties": []
+      },
+      {
+        "dependsOn": [
+          {
+            "activity": "4_3_e_IAD_nb_create_features",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "name": "AnomalyDetection",
+        "type": "ForEach",
+        "typeProperties": {
+          "activities": [
+            {
+              "dependsOn": [],
+              "name": "5_1_ijungle_common_feature_engineering",
+              "policy": {
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false,
+                "timeout": "0.12:00:00"
+              },
+              "type": "SynapseNotebook",
+              "typeProperties": {
+                "notebook": {
+                  "referenceName": "5_1_ijungle_common_feature_engineering",
+                  "type": "NotebookReference"
+                },
+                "parameters": {
+                  "allowed_null_pct": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.allowed_null_pct"
+                    }
+                  },
+                  "batch_id": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.batch_id"
+                    }
+                  },
+                  "date_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.date_feat"
+                    }
+                  },
+                  "features_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.features_path"
+                    }
+                  },
+                  "first_year": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.first_year"
+                    }
+                  },
+                  "id_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat"
+                    }
+                  },
+                  "model_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.model_path"
+                    }
+                  },
+                  "prepped_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.prepped_data_path"
+                    }
+                  },
+                  "time_slice_folder": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@item()"
+                    }
+                  },
+                  "training": {
+                    "type": "string",
+                    "value": "True"
+                  },
+                  "transformed_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.transformed_data_path"
+                    }
+                  }
+                }
+              },
+              "userProperties": []
+            },
+            {
+              "dependsOn": [
+                {
+                  "activity": "5_1_ijungle_common_feature_engineering",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
+              "name": "5_2_ijungle_training_iforest",
+              "policy": {
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false,
+                "timeout": "0.12:00:00"
+              },
+              "type": "SynapseNotebook",
+              "typeProperties": {
+                "notebook": {
+                  "referenceName": "5_2_ijungle_training_iforest",
+                  "type": "NotebookReference"
+                },
+                "parameters": {
+                  "batch_id": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.batch_id"
+                    }
+                  },
+                  "extension_level": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.extension_level"
+                    }
+                  },
+                  "iFor_data_prefix": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.iFor_data_prefix"
+                    }
+                  },
+                  "id_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat"
+                    }
+                  },
+                  "prepped_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.prepped_data_path"
+                    }
+                  },
+                  "seed": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.seed"
+                    }
+                  },
+                  "subsample_list": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.subsample_list"
+                    }
+                  },
+                  "time_slice_folder": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@item()"
+                    }
+                  },
+                  "train_size": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.train_size"
+                    }
+                  },
+                  "trees_list": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.trees_list"
+                    }
+                  }
+                }
+              },
+              "userProperties": []
+            },
+            {
+              "dependsOn": [
+                {
+                  "activity": "5_2_ijungle_training_iforest",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
+              "name": "5_3_ijungle_training_overhead",
+              "policy": {
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false,
+                "timeout": "0.12:00:00"
+              },
+              "type": "SynapseNotebook",
+              "typeProperties": {
+                "notebook": {
+                  "referenceName": "5_3_ijungle_training_overhead",
+                  "type": "NotebookReference"
+                },
+                "parameters": {
+                  "batch_id": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.batch_id"
+                    }
+                  },
+                  "extension_level": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.extension_level"
+                    }
+                  },
+                  "iFor_data_prefix": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.iFor_data_prefix"
+                    }
+                  },
+                  "id_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat"
+                    }
+                  },
+                  "id_feat_types": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat_types"
+                    }
+                  },
+                  "overhead_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.overhead_data_path"
+                    }
+                  },
+                  "overhead_results_prefix": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.overhead_results_prefix"
+                    }
+                  },
+                  "overhead_size": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.overhead_size"
+                    }
+                  },
+                  "prepped_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.prepped_data_path"
+                    }
+                  },
+                  "seed": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.seed"
+                    }
+                  },
+                  "subsample_list": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.subsample_list"
+                    }
+                  },
+                  "time_slice_folder": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@item()"
+                    }
+                  },
+                  "train_size": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.train_size"
+                    }
+                  },
+                  "trees_list": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.trees_list"
+                    }
+                  }
+                }
+              },
+              "userProperties": []
+            },
+            {
+              "dependsOn": [
+                {
+                  "activity": "5_3_ijungle_training_overhead",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
+              "name": "5_4_ijungle_training_best_iforest",
+              "policy": {
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false,
+                "timeout": "0.12:00:00"
+              },
+              "type": "SynapseNotebook",
+              "typeProperties": {
+                "notebook": {
+                  "referenceName": "5_4_ijungle_training_best_iforest",
+                  "type": "NotebookReference"
+                },
+                "parameters": {
+                  "batch_id": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.batch_id"
+                    }
+                  },
+                  "best_iforest_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.best_iforest_path"
+                    }
+                  },
+                  "iFor_data_prefix": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.iFor_data_prefix"
+                    }
+                  },
+                  "id_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat"
+                    }
+                  },
+                  "overhead_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.overhead_data_path"
+                    }
+                  },
+                  "overhead_results_prefix": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.overhead_results_prefix"
+                    }
+                  },
+                  "subsample_list": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.subsample_list"
+                    }
+                  },
+                  "time_slice_folder": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@item()"
+                    }
+                  },
+                  "trees_list": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.trees_list"
+                    }
+                  }
+                }
+              },
+              "userProperties": []
+            },
+            {
+              "dependsOn": [
+                {
+                  "activity": "5_4_ijungle_training_best_iforest",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
+              "name": "5_5_ijungle_predict_anomaly_detection",
+              "policy": {
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false,
+                "timeout": "0.12:00:00"
+              },
+              "type": "SynapseNotebook",
+              "typeProperties": {
+                "notebook": {
+                  "referenceName": "5_5_ijungle_predict_anomaly_detection",
+                  "type": "NotebookReference"
+                },
+                "parameters": {
+                  "batch_id": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.batch_id"
+                    }
+                  },
+                  "best_iforest_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.best_iforest_path"
+                    }
+                  },
+                  "extension_level": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.extension_level"
+                    }
+                  },
+                  "id_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat"
+                    }
+                  },
+                  "id_feat_types": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat_types"
+                    }
+                  },
+                  "prepped_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.prepped_data_path"
+                    }
+                  },
+                  "results_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.results_path"
+                    }
+                  },
+                  "time_slice_folder": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@item()"
+                    }
+                  }
+                }
+              },
+              "userProperties": []
+            },
+            {
+              "dependsOn": [
+                {
+                  "activity": "5_5_ijungle_predict_anomaly_detection",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
+              "name": "5_6_ijungle_predict_interpret",
+              "policy": {
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureInput": false,
+                "secureOutput": false,
+                "timeout": "0.12:00:00"
+              },
+              "type": "SynapseNotebook",
+              "typeProperties": {
+                "notebook": {
+                  "referenceName": "5_6_ijungle_predict_interpret",
+                  "type": "NotebookReference"
+                },
+                "parameters": {
+                  "batch_id": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.batch_id"
+                    }
+                  },
+                  "best_iforest_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.best_iforest_path"
+                    }
+                  },
+                  "extension_level": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.extension_level"
+                    }
+                  },
+                  "features_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.features_path"
+                    }
+                  },
+                  "id_feat": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat"
+                    }
+                  },
+                  "id_feat_types": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.id_feat_types"
+                    }
+                  },
+                  "interpret_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.interpret_path"
+                    }
+                  },
+                  "number_of_interpret_features": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.number_of_interpret_features"
+                    }
+                  },
+                  "prepped_data_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.prepped_data_path"
+                    }
+                  },
+                  "results_path": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.results_path"
+                    }
+                  },
+                  "score_threshold": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@pipeline().parameters.score_threshold"
+                    }
+                  },
+                  "time_slice_folder": {
+                    "type": "string",
+                    "value": {
+                      "type": "Expression",
+                      "value": "@item()"
+                    }
+                  }
+                }
+              },
+              "userProperties": []
+            }
+          ],
+          "items": {
+            "type": "Expression",
+            "value": "@split(pipeline().parameters.time_slice_list, ',')"
+          }
+        },
+        "userProperties": []
+      }
+    ],
+    "annotations": [],
+    "parameters": {
+      "allowed_null_pct": {
+        "type": "string"
+      },
+      "batch_id": {
+        "type": "string"
+      },
+      "best_iforest_path": {
+        "type": "string"
+      },
+      "date_feat": {
+        "type": "string"
+      },
+      "edge_path": {
+        "type": "string"
+      },
+      "extension_level": {
+        "type": "string"
+      },
+      "features_path": {
+        "type": "string"
+      },
+      "first_year": {
+        "type": "string"
+      },
+      "heatmap_path": {
+        "type": "string"
+      },
+      "iFor_data_prefix": {
+        "type": "string"
+      },
+      "id_feat": {
+        "type": "string"
+      },
+      "id_feat_types": {
+        "type": "string"
+      },
+      "interpret_path": {
+        "type": "string"
+      },
+      "invoice_cleaned_path": {
+        "type": "string"
+      },
+      "model_path": {
+        "type": "string"
+      },
+      "number_of_interpret_features": {
+        "type": "string"
+      },
+      "output_container_path": {
+        "type": "string"
+      },
+      "overhead_data_path": {
+        "type": "string"
+      },
+      "overhead_results_prefix": {
+        "type": "string"
+      },
+      "overhead_size": {
+        "type": "string"
+      },
+      "page_rank_path": {
+        "type": "string"
+      },
+      "prepped_data_path": {
+        "type": "string"
+      },
+      "results_path": {
+        "type": "string"
+      },
+      "score_threshold": {
+        "type": "string"
+      },
+      "seed": {
+        "type": "string"
+      },
+      "subsample_list": {
+        "type": "string"
+      },
+      "taxpayer_profile_cleaned_path": {
+        "type": "string"
+      },
+      "time_slice_list": {
+        "type": "string"
+      },
+      "train_size": {
+        "type": "string"
+      },
+      "transformed_data_path": {
+        "type": "string"
+      },
+      "trees_list": {
+        "type": "string"
+      }
+    }
+  },
+  "type": "Microsoft.Synapse/workspaces/pipelines"
+}
